@@ -5,20 +5,24 @@ import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import { Provider } from 'react-redux';
 
 import RootNavigator from './src/app/navigation/RootNavigator';
+import { store } from '@/store/store';
 
 const App = () => {
-  console.log("App running !");
+  console.log('App running !');
   const isDarkMode = useColorScheme() === 'dark';
 
   return (
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
+      <Provider store={store}>
+        <AppContent />
+      </Provider>
     </SafeAreaProvider>
   );
-}
+};
 
 const AppContent = () => {
   const safeAreaInsets = useSafeAreaInsets();
@@ -28,7 +32,7 @@ const AppContent = () => {
       <RootNavigator />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

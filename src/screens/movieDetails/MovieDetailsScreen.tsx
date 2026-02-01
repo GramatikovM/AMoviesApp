@@ -1,92 +1,149 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
+import { RouteProp, useRoute } from '@react-navigation/native';
 
-const MovieDetailsScreen = ({ route, navigation }) => {
-  const insets = useSafeAreaInsets();
-  
-  // We extract the params sent from the Home screen
-  // If no params exist, we provide a fallback object
-  const { title, id } = route.params || { title: 'Unknown Movie', id: 0 };
+import { RootStackParamList } from '@/app/navigation/types';
+import { omdbRequest } from '@/services/omdbClient';
+
+type RouteProps = RouteProp<RootStackParamList, 'MovieDetails'>;
+
+const MovieDetailsScreen = () => {
+  const { params } = useRoute<RouteProps>();
+  const { imdbID, basicMovie } = params;
+
+  const [movie, setMovie] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  console.log('movie --- ', movie);
+
+  useEffect(() => {
+    const loadMovie = async () => {
+      try {
+        const data = await omdbRequest({
+          i: imdbID,
+          plot: 'full',
+        });
+        setMovie(data);
+      } catch (e) {
+        console.warn('Failed to load movie details', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMovie();
+  }, [imdbID]);
+
+  if (loading && !movie) {
+    return <ActivityIndicator style={{ flex: 1 }} />;
+  }
+
+  const poster =
+    movie?.Poster && movie.Poster !== 'N/A' ? movie.Poster : basicMovie?.Poster;
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
-        
-        {/* Poster Placeholder */}
-        <View style={[styles.posterPlaceholder, { height: 400 }]}>
-          <Text style={styles.placeholderText}>Poster for {title}</Text>
-        </View>
+    <ScrollView style={styles.container}>
+      {poster && <Image source={{ uri: poster }} style={styles.poster} resizeMode="contain" />}
 
-        <View style={styles.detailsContent}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.metadata}>2024 • Action, Sci-Fi • 2h 15m</Text>
-          
-          <TouchableOpacity style={styles.playButton}>
-            <Text style={styles.playButtonText}>Play Now</Text>
-          </TouchableOpacity>
+      <View style={styles.content}>
+        <Text style={styles.title}>{movie?.Title}</Text>
+        <Text style={styles.meta}>
+          {movie?.Year} • {movie?.Runtime} • {movie?.Rated}
+        </Text>
 
-          <Text style={styles.synopsisTitle}>Synopsis</Text>
-          <Text style={styles.synopsisText}>
-            This is where the movie description will go. Since you're building BMovies, 
-            you'll likely fetch this data from an API using the ID: {id}.
+        <Text style={styles.plot}>{movie?.Plot}</Text>
+
+        <Text style={styles.section}>Details</Text>
+        <View style={styles.detailsContainer}>
+          <Text style={styles.detail}>
+            <Text style={styles.label}>Genre: </Text>
+            {movie?.Genre}
+          </Text>
+          <Text style={styles.detail}>
+            <Text style={styles.label}>Director: </Text>
+            {movie?.Director}
+          </Text>
+          <Text style={styles.detail}>
+            <Text style={styles.label}>Actors: </Text>
+            {movie?.Actors}
+          </Text>
+          <Text style={styles.detail}>
+            <Text style={styles.label}>IMDb Rating: </Text>
+            {movie?.imdbRating}
+          </Text>
+          <Text style={styles.detail}>
+            <Text style={styles.label}>Runtime: </Text>
+            {movie?.Runtime}
+          </Text>
+          <Text style={styles.detail}>
+            <Text style={styles.label}>Released: </Text>
+            {movie?.Released}
+          </Text>
+          <Text style={styles.detail}>
+            <Text style={styles.label}>Language: </Text>
+            {movie?.Language}
+          </Text>
+          <Text style={styles.detail}>
+            <Text style={styles.label}>Awards: </Text>
+            {movie?.Awards}
           </Text>
         </View>
-
-      </ScrollView>
-    </View>
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000', // Movies usually look better on dark themes
+    backgroundColor: '#000',
   },
-  posterPlaceholder: {
-    backgroundColor: '#333',
-    justifyContent: 'center',
-    alignItems: 'center',
+  poster: {
+    width: '100%',
+    height: 420,
   },
-  placeholderText: {
-    color: '#777',
-    fontSize: 18,
-  },
-  detailsContent: {
-    padding: 20,
+  content: {
+    padding: 16,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
     color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 8,
   },
-  metadata: {
+  meta: {
     color: '#aaa',
-    marginTop: 8,
-    fontSize: 14,
+    marginBottom: 12,
   },
-  playButton: {
-    backgroundColor: '#e50914',
-    padding: 15,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  playButtonText: {
+  plot: {
     color: '#fff',
-    fontWeight: 'bold',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  section: {
+    alignSelf: "center",
+    color: '#fff',
     fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 16,
+    marginBottom: 12
   },
-  synopsisTitle: {
+  detailsContainer: {
+    paddingBottom: 24,
+  },
+  label: {
+    fontWeight: 'bold',
     color: '#fff',
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 10,
   },
-  synopsisText: {
-    color: '#ccc',
-    lineHeight: 22,
-    fontSize: 15,
+  detail: {
+    color: '#fff',
+    marginBottom: 10,
   },
 });
 
