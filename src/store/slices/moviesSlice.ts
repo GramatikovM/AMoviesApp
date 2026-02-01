@@ -1,65 +1,53 @@
-import {
-  createSlice,
-  createAsyncThunk,
-  PayloadAction,
-} from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../rootReducer';
-
-export interface Movie {
-  id: number;
-  title: string;
-  poster_path: string | null;
-  backdrop_path: string | null;
-  overview: string;
-  release_date: string;
-  vote_average: number;
-}
+import { omdbRequest } from '@/services/omdbClient';
+import { OmdbSearchResponse } from '@/services/omdb.types';
+import { MovieCategories } from '@/types/movieTypes';
 
 interface MoviesState {
-  trending: Movie[];
-  popular: Movie[];
-  topRated: Movie[];
-  isLoading: boolean;
+  categories: MovieCategories;
+  loading: boolean;
   error: string | null;
 }
 
+interface ReqParams {
+  category: string;
+  s: string; // Search
+  t?: string; // Title
+  i?: string; // ID
+  type?: 'movie' | 'series' | 'episode';
+  y?: string | number;
+  page?: number;
+  plot?: 'short' | 'full';
+  apikey?: string;
+}
+
 const initialState: MoviesState = {
-  trending: [],
-  popular: [],
-  topRated: [],
-  isLoading: false,
+  categories: {
+    trending: [], // Result of s=2025
+    action: [], // Result of s=Action
+    series: [], // Result of s=Life&type=series
+  },
+  loading: false,
   error: null,
 };
 
-const API_KEY = 'YOUR_API_KEY';
-const BASE_URL = 'https://api.themoviedb.org/3';
+export const fetchCategory = createAsyncThunk(
+  'movies/fetchCategory',
+  async (params: ReqParams, { rejectWithValue }) => {
+    try {
+      const data = await omdbRequest<any>({
+        ...params,
+      });
 
-const fetchMovies = async (endpoint: string): Promise<Movie[]> => {
-  const response = await fetch(
-    `${BASE_URL}${endpoint}?api_key=${API_KEY}`
-  );
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch movies');
-  }
-
-  const data = await response.json();
-  return data.results;
-};
-
-export const fetchTrendingMovies = createAsyncThunk(
-  'movies/fetchTrending',
-  () => fetchMovies('/trending/movie/week')
-);
-
-export const fetchPopularMovies = createAsyncThunk(
-  'movies/fetchPopular',
-  () => fetchMovies('/movie/popular')
-);
-
-export const fetchTopRatedMovies = createAsyncThunk(
-  'movies/fetchTopRated',
-  () => fetchMovies('/movie/top_rated')
+      return {
+        category: params.category,
+        movies: data.Search || [],
+      };
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  },
 );
 
 const moviesSlice = createSlice({
@@ -72,38 +60,19 @@ const moviesSlice = createSlice({
   },
   extraReducers: builder => {
     builder
-      // Trending
-      .addCase(fetchTrendingMovies.pending, state => {
-        state.isLoading = true;
-        state.error = null;
+      .addCase(fetchCategory.pending, state => {
+        state.loading = true;
       })
-      .addCase(
-        fetchTrendingMovies.fulfilled,
-        (state, action: PayloadAction<Movie[]>) => {
-          state.trending = action.payload;
-          state.isLoading = false;
-        }
-      )
-      .addCase(fetchTrendingMovies.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message ?? 'Something went wrong';
+      .addCase(fetchCategory.fulfilled, (state, action) => {
+        state.loading = false;
+        const { category, movies } = action.payload;
+        // Dynamically update the specific category list
+        state.categories[category] = movies;
       })
-
-      // Popular
-      .addCase(
-        fetchPopularMovies.fulfilled,
-        (state, action: PayloadAction<Movie[]>) => {
-          state.popular = action.payload;
-        }
-      )
-
-      // Top Rated
-      .addCase(
-        fetchTopRatedMovies.fulfilled,
-        (state, action: PayloadAction<Movie[]>) => {
-          state.topRated = action.payload;
-        }
-      );
+      .addCase(fetchCategory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
@@ -111,16 +80,10 @@ export const { clearMoviesError } = moviesSlice.actions;
 export default moviesSlice.reducer;
 
 export const selectTrendingMovies = (state: RootState) =>
-  state.movies.trending;
-
+  state.movies.categories.trending;
 export const selectPopularMovies = (state: RootState) =>
-  state.movies.popular;
-
+  state.movies.categories.action;
 export const selectTopRatedMovies = (state: RootState) =>
-  state.movies.topRated;
-
-export const selectMoviesLoading = (state: RootState) =>
-  state.movies.isLoading;
-
-export const selectMoviesError = (state: RootState) =>
-  state.movies.error;
+  state.movies.categories.series;
+export const selectMoviesLoading = (state: RootState) => state.movies.loading;
+export const selectMoviesError = (state: RootState) => state.movies.error;
