@@ -1,26 +1,25 @@
 import { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '@/theme/hooks';
 import type { ThemeColors } from '@/theme/theme';
 
-const Footer = () => {
-  const insets = useSafeAreaInsets();
+const MovieCardSkeleton = () => {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]} />
-  );
+  return <View style={styles.card} />;
 };
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
-    container: {
-      backgroundColor: colors.footerBackground,
-      height: 8,
+    card: {
+      width: 120,
+      height: 180,
+      borderRadius: 8,
+      backgroundColor: colors.skeleton,
+      marginRight: 12,
     },
   });
 
-export default Footer;
+export default MovieCardSkeleton;

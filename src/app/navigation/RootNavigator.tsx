@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { DefaultTheme, DarkTheme, NavigationContainer } from '@react-navigation/native';
 import { useMemo } from 'react';
 

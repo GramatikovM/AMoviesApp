@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
 
 import { Movie } from '@/types/movieTypes';
@@ -50,6 +50,7 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     card: {
       width: 120,
+      marginTop: 4,
       marginRight: 12,
       borderRadius: 8,
       overflow: 'hidden',
@@ -74,6 +75,7 @@ const createStyles = (colors: ThemeColors) =>
     },
     info: {
       marginTop: 4,
+      paddingLeft: 4,
       minHeight: 24,
     },
     title: {
