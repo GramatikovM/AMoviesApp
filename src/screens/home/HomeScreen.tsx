@@ -1,25 +1,9 @@
 import React, { useEffect } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  ActivityIndicator,
-  FlatList,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
+import { StyleSheet, View, FlatList } from 'react-native';
+import { useDispatch } from 'react-redux';
 
 import { AppDispatch } from '@/store/store';
-import { useAppSelector } from '@/store/hooks';
-import {
-  selectTrendingMovies,
-  selectPopularMovies,
-  selectTopRatedMovies,
-  selectMoviesLoading,
-  selectMoviesError,
-  fetchCategory,
-} from '@/store/slices/moviesSlice';
+import { fetchCategory } from '@/store/slices/moviesSlice';
 
 import { HOME_SECTIONS } from '@/config/homeSections.config';
 import MovieSection from '@/app/components/MovieSection';
@@ -28,15 +12,8 @@ interface HomeScreenProps {
   navigation: any;
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-  const insets = useSafeAreaInsets();
+const HomeScreen: React.FC<HomeScreenProps> = () => {
   const dispatch = useDispatch<AppDispatch>();
-
-  const categories = useAppSelector(state => state.movies.categories);
-  const isLoading = useAppSelector(selectMoviesLoading);
-  const error = useAppSelector(selectMoviesError);
-  console.log("categories --- ", categories);
-
 
   useEffect(() => {
     HOME_SECTIONS.forEach(section => {
@@ -49,16 +26,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     });
   }, []);
 
-  if (isLoading) return <ActivityIndicator size="large" />;
-
-  if (error) {
-    return (
-      <View style={styles.centered}>
-        <Text style={{ color: 'red' }}>Error: {error}</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <FlatList
@@ -67,10 +34,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         renderItem={({ item }) => (
           <MovieSection
             title={item.title}
+            category={item.category}
+            query={item.query.s}
             layout={item.layout}
-            movies={categories[item.category] ?? []}
-            loading={isLoading}
-            error={error ?? undefined}
           />
         )}
         showsVerticalScrollIndicator={false}

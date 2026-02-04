@@ -1,27 +1,25 @@
 import React, { memo } from 'react';
 import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Movie } from '@/types/movieTypes';
-import { RootStackParamList } from '@/app/navigation/types';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+type Props = {
+  movie: Movie;
+  onPress: () => void;
+  onLongPress?: () => void;
+};
 
-const MovieCard = memo(({ movie }: { movie: Movie }) => {
-  const navigation = useNavigation<NavigationProp>();
-
+const MovieCard = memo(({ movie, onPress, onLongPress }: Props) => {
   const hasPoster = movie.Poster && movie.Poster !== 'N/A';
 
-  const onPress = () => {
-    navigation.navigate('MovieDetails', {
-      imdbID: movie.imdbID,
-      basicMovie: movie,
-    });
-  };
-
   return (
-    <Pressable onPress={onPress} style={styles.card}>
+    <Pressable
+      style={styles.card}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={800}
+      android_ripple={{ color: '#ddd' }}
+    >
       {hasPoster ? (
         <Image
           source={{ uri: movie.Poster }}
@@ -50,7 +48,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   poster: {
     width: '100%',

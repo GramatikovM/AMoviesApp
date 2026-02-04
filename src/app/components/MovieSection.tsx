@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,32 +6,86 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
+import { useDispatch } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { Movie } from '@/types/movieTypes';
+import { AppDispatch } from '@/store/store';
+import {
+  fetchCategory,
+  selectCategoryLoading,
+  selectCategoryError,
+  selectCategoryMovies,
+} from '@/store/slices/moviesSlice';
+import { useAppSelector } from '@/store/hooks';
+
+import type { Movie } from '@/types/movieTypes';
+import { RootStackParamList } from '@/app/navigation/types';
+
 import MovieCard from './MovieCard';
+import MovieCardSkeleton from './MovieCardSkeleton';
+import { SKELETON_COUNT } from '@/shared/constants/constants';
 
 type Props = {
   title: string;
-  movies: Movie[];
+  category: string;
+  query: string;
   layout?: 'horizontal' | 'vertical';
-  loading: boolean;
-  error?: string;
 };
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 const MovieSection = memo(
-  ({ title, movies, layout = 'horizontal', loading, error }: Props) => {
+  ({ title, category, query, layout = 'horizontal' }: Props) => {
+    const navigation = useNavigation<NavigationProp>();
+    const skeletonData = Array.from({ length: SKELETON_COUNT }).map(
+      (_, index) => ({ id: `skeleton-${index}` }),
+    );
     const isHorizontal = layout === 'horizontal';
+    const currentPage = useAppSelector(
+      state => state.movies.pagination[category],
+    );
+    const movies = useAppSelector(selectCategoryMovies(category));
+    const loading = useAppSelector(selectCategoryLoading(category));
+    const error = useAppSelector(selectCategoryError(category));
+    const dispatch = useDispatch<AppDispatch>();
 
-    if (loading) {
-      return (
-        <View style={styles.container}>
-          <Text style={styles.title}>{title}</Text>
-          <ActivityIndicator color="#fff" />
-        </View>
-      );
-    }
+    const isInitialLoading = loading && movies.length === 0;
+    const data = isInitialLoading ? skeletonData : movies;
 
-    if (error) {
+    const loadMore = useCallback(() => {
+      if (!loading && movies.length > 0) {
+        dispatch(
+          fetchCategory({
+            category: category,
+            s: query,
+            page: currentPage,
+          }),
+        );
+      }
+    }, [dispatch, loading, category, query, currentPage, movies.length]);
+
+    const renderItem = useCallback(
+      ({ item }: { item: Movie | { id: string } }) => {
+        if ('id' in item) {
+          return <MovieCardSkeleton />;
+        }
+
+        return (
+          <MovieCard
+            movie={item}
+            onPress={() =>
+              navigation.navigate('MovieDetails', {
+                imdbID: item.imdbID,
+                basicMovie: item,
+              })
+            }
+          />
+        );
+      },
+      [navigation],
+    );
+
+    if (error && movies.length === 0) {
       return (
         <View style={styles.container}>
           <Text style={styles.title}>{title}</Text>
@@ -49,31 +103,35 @@ const MovieSection = memo(
         <Text style={styles.title}>{title}</Text>
 
         <FlatList
-          data={movies}
+          data={data}
           horizontal={isHorizontal}
-          keyExtractor={(item) => item.imdbID}
-          renderItem={({ item }) => (
-            <MovieCard movie={item} />
-          )}
+          keyExtractor={item => ('id' in item ? item.id : item.imdbID)}
+          renderItem={renderItem}
+          onEndReached={!isInitialLoading ? loadMore : undefined}
+          onEndReachedThreshold={0.5}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={
             isHorizontal ? styles.horizontalList : undefined
           }
+          ListFooterComponent={
+            loading ? <ActivityIndicator size="small" /> : null
+          }
         />
       </View>
     );
-  }
+  },
 );
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: 12,
     marginBottom: 8,
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
+    color: '#000',
     marginBottom: 12,
     paddingHorizontal: 16,
   },

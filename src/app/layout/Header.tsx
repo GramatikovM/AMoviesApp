@@ -1,27 +1,18 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Header = () => {
-  const insets = useSafeAreaInsets();
-
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <Text style={styles.title}>AMovies</Text>
+    <View style={styles.container}>
+      <Text style={styles.logo}>M</Text>
+      <Text style={styles.title}>Home</Text>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#000',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  title: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '600',
-  },
+  container: { flexDirection: 'row', alignItems: 'center' },
+  logo: { color: '#E50914', fontSize: 30, fontWeight: 'bold' },
+  title: { color: '#fff', fontSize: 18, marginLeft: 8 },
 });
 
 export default Header;

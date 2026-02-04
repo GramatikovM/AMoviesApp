@@ -1,42 +1,60 @@
 import React from 'react';
 
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+import { RootStackParamList } from '@/app/navigation/types';
+
+export interface AccountMenuItem {
+  id: string;
+  title: string;
+  route?: keyof RootStackParamList; 
+  color?: string;
+}
 
 const MyAccountScreen = () => {
   const insets = useSafeAreaInsets();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const menuItems = [
-    { id: '1', title: 'Edit Profile' },
-    { id: '2', title: 'Watchlist' },
-    { id: '3', title: 'Settings' },
-    { id: '4', title: 'Logout', color: '#e50914' }, // Red for logout
+  const menuItems: AccountMenuItem[] = [
+    { id: 'liked', title: 'Liked', route: 'LikedMovies' },
+    { id: 'watchlist', title: 'Watchlist', route: 'Watchlist' },
+    { id: 'settings', title: 'Settings' },
+    { id: 'logout', title: 'Logout', color: '#e50914' },
   ];
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.content}>
-        
-        {/* Profile Header */}
         <View style={styles.header}>
           <View style={styles.avatarPlaceholder}>
-            <Text style={styles.avatarText}>JD</Text>
+            <Text style={styles.avatarText}>Acc</Text>
           </View>
-          <Text style={styles.userName}>John Doe</Text>
-          <Text style={styles.userEmail}>john.doe@example.com</Text>
+          <Text style={styles.userName}>My Account</Text>
+          <Text style={styles.userEmail}>AMovies.com</Text>
         </View>
 
-        {/* Menu Options */}
         <View style={styles.menuSection}>
-          {menuItems.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.menuItem}>
-              <Text style={[styles.menuText, item.color ? { color: item.color } : null]}>
+          {menuItems.map(item => (
+            <Pressable
+              key={item.id}
+              style={styles.menuItem}
+              onPress={() => item.route && navigation.navigate(item.route as any)}
+            >
+              <Text
+                style={[
+                  styles.menuText,
+                  item.color ? { color: item.color } : null,
+                ]}
+              >
                 {item.title}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </View>
-
       </ScrollView>
     </View>
   );

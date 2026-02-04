@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,24 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Pressable,
+  Animated,
 } from 'react-native';
 import { RouteProp, useRoute } from '@react-navigation/native';
+import { ThumbsUp, Plus, Check } from 'lucide-react-native';
 
 import { RootStackParamList } from '@/app/navigation/types';
-import { omdbRequest } from '@/services/omdbClient';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  fetchMovieDetails,
+  selectMovieDetails,
+  selectMovieDetailsLoading,
+  clearMovieDetails,
+  toggleLikeMovie,
+  toggleMyListMovie,
+  selectIsMovieLiked,
+  selectIsMovieInMyList,
+} from '@/store/slices/moviesSlice';
 
 type RouteProps = RouteProp<RootStackParamList, 'MovieDetails'>;
 
@@ -18,27 +31,92 @@ const MovieDetailsScreen = () => {
   const { params } = useRoute<RouteProps>();
   const { imdbID, basicMovie } = params;
 
-  const [movie, setMovie] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  console.log('movie --- ', movie);
+  const dispatch = useAppDispatch();
+
+  const movie = useAppSelector(selectMovieDetails);
+  const loading = useAppSelector(selectMovieDetailsLoading);
+  const isLiked = useAppSelector(state => selectIsMovieLiked(state, imdbID));
+  const isInMyList = useAppSelector(state =>
+    selectIsMovieInMyList(state, imdbID),
+  );
+
+  const likeScale = useRef(new Animated.Value(1)).current;
+  const likeRotation = useRef(new Animated.Value(0)).current;
+  
+  const listScale = useRef(new Animated.Value(1)).current;
+  const listRotation = useRef(new Animated.Value(0)).current;
+
+  const animateButton = (
+    scaleValue: Animated.Value,
+    rotationValue: Animated.Value,
+  ) => {
+    Animated.parallel([
+      Animated.sequence([
+        Animated.spring(scaleValue, {
+          toValue: 1.4,
+          useNativeDriver: true,
+          speed: 40,
+          bounciness: 18,
+        }),
+        Animated.spring(scaleValue, {
+          toValue: 1,
+          useNativeDriver: true,
+          speed: 40,
+          bounciness: 18,
+        }),
+      ]),
+      Animated.sequence([
+        Animated.timing(rotationValue, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(rotationValue, {
+          toValue: -1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(rotationValue, {
+          toValue: 0,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  };
+
+  const likeRotate = likeRotation.interpolate({
+    inputRange: [-1, 0, 1],
+    outputRange: ['-15deg', '0deg', '15deg'],
+  });
+
+  const listRotate = listRotation.interpolate({
+    inputRange: [-1, 0, 1],
+    outputRange: ['-15deg', '0deg', '15deg'],
+  });
 
   useEffect(() => {
-    const loadMovie = async () => {
-      try {
-        const data = await omdbRequest({
-          i: imdbID,
-          plot: 'full',
-        });
-        setMovie(data);
-      } catch (e) {
-        console.warn('Failed to load movie details', e);
-      } finally {
-        setLoading(false);
-      }
-    };
+    dispatch(fetchMovieDetails(imdbID));
 
-    loadMovie();
+    return () => {
+      dispatch(clearMovieDetails());
+    };
   }, [imdbID]);
+
+  const handleLike = () => {
+    if (movie) {
+      animateButton(likeScale, likeRotation);
+      dispatch(toggleLikeMovie(movie));
+    }
+  };
+
+  const handleAddToList = () => {
+    if (movie) {
+      animateButton(listScale, listRotation);
+      dispatch(toggleMyListMovie(movie));
+    }
+  };
+  
 
   if (loading && !movie) {
     return <ActivityIndicator style={{ flex: 1 }} />;
@@ -49,7 +127,13 @@ const MovieDetailsScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      {poster && <Image source={{ uri: poster }} style={styles.poster} resizeMode="contain" />}
+      {poster && (
+        <Image
+          source={{ uri: poster }}
+          style={styles.poster}
+          resizeMode="contain"
+        />
+      )}
 
       <View style={styles.content}>
         <Text style={styles.title}>{movie?.Title}</Text>
@@ -58,6 +142,39 @@ const MovieDetailsScreen = () => {
         </Text>
 
         <Text style={styles.plot}>{movie?.Plot}</Text>
+
+        <View style={styles.actions}>
+          <Pressable style={styles.actionButton} onPress={handleLike}>
+            <Animated.View
+              style={{
+                transform: [{ scale: likeScale }, { rotate: likeRotate }],
+              }}>
+              <ThumbsUp
+                size={20}
+                color="#fff"
+                fill={isLiked ? '#fff' : 'transparent'}
+                strokeWidth={2}
+              />
+            </Animated.View>
+            <Text style={styles.actionText}>{isLiked ? 'Liked' : 'Like'}</Text>
+          </Pressable>
+
+          <Pressable style={styles.actionButton} onPress={handleAddToList}>
+            <Animated.View
+              style={{
+                transform: [{ scale: listScale }, { rotate: listRotate }],
+              }}>
+              {isInMyList ? (
+                <Check size={20} color="#fff" strokeWidth={3} />
+              ) : (
+                <Plus size={20} color="#fff" strokeWidth={2} />
+              )}
+            </Animated.View>
+            <Text style={styles.actionText}>
+              {isInMyList ? 'In My List' : 'My List'}
+            </Text>
+          </Pressable>
+        </View>
 
         <Text style={styles.section}>Details</Text>
         <View style={styles.detailsContainer}>
@@ -127,12 +244,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   section: {
-    alignSelf: "center",
+    alignSelf: 'center',
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 16,
-    marginBottom: 12
+    marginBottom: 12,
   },
   detailsContainer: {
     paddingBottom: 24,
@@ -144,6 +261,21 @@ const styles = StyleSheet.create({
   detail: {
     color: '#fff',
     marginBottom: 10,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+
+  actionButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionText: {
+    color: '#fff',
+    fontWeight: '600',
   },
 });
 
