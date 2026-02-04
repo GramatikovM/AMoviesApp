@@ -7,9 +7,10 @@ import {
 
 import { RootState } from '../rootReducer';
 import { omdbRequest } from '@/services/omdbClient';
-import { MovieCategories, MovieDetails } from '@/types/movieTypes';
+import { OmdbSearchPayload } from '@/services/omdb.types';
+import { Movie, MovieCategories, MovieDetails } from '@/types/movieTypes';
 
-interface MoviesState {
+type MoviesState = {
   // state could be Normalized on a later stage
   categories: MovieCategories;
   pagination: {
@@ -22,9 +23,9 @@ interface MoviesState {
   movieDetailsError: string | null;
   likedMovies: { [imdbID: string]: MovieDetails };
   myListMovies: { [imdbID: string]: MovieDetails };
-}
+};
 
-interface ReqParams {
+type ReqParams = {
   category: string;
   s: string; // Search
   t?: string; // Title
@@ -34,7 +35,7 @@ interface ReqParams {
   page?: number;
   plot?: 'short' | 'full';
   apikey?: string;
-}
+};
 
 const initialState: MoviesState = {
   categories: {
@@ -54,15 +55,20 @@ const initialState: MoviesState = {
   myListMovies: {},
 };
 
+type FetchCategoryResult = {
+  category: string;
+  movies: Movie[];
+};
+
 export const fetchCategory = createAsyncThunk<
-  { category: string; movies: any[] },
+  FetchCategoryResult,
   ReqParams,
   { rejectValue: string }
 >(
   'movies/fetchCategory',
   async (params, { rejectWithValue }) => {
     try {
-      const data = await omdbRequest<any>({ ...params });
+      const data = await omdbRequest<OmdbSearchPayload>({ ...params });
       return {
         category: params.category,
         movies: data.Search || [],
@@ -173,7 +179,7 @@ export const { clearMovieDetails, toggleLikeMovie, toggleMyListMovie } =
   moviesSlice.actions;
 export default moviesSlice.reducer;
 
-const EMPTY_ARRAY: any[] = [];
+const EMPTY_ARRAY: Movie[] = [];
 export const selectCategoryMovies = (category: string) => (state: RootState) =>
   state.movies.categories[category] ?? EMPTY_ARRAY;
 export const selectCategoryLoading = (category: string) => (state: RootState) =>

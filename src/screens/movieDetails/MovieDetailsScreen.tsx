@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -24,6 +24,8 @@ import {
   selectIsMovieLiked,
   selectIsMovieInMyList,
 } from '@/store/slices/moviesSlice';
+import { useTheme } from '@/theme/hooks';
+import type { ThemeColors } from '@/theme/theme';
 
 type RouteProps = RouteProp<RootStackParamList, 'MovieDetails'>;
 
@@ -45,6 +47,8 @@ const MovieDetailsScreen = () => {
   
   const listScale = useRef(new Animated.Value(1)).current;
   const listRotation = useRef(new Animated.Value(0)).current;
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const animateButton = (
     scaleValue: Animated.Value,
@@ -119,7 +123,7 @@ const MovieDetailsScreen = () => {
   
 
   if (loading && !movie) {
-    return <ActivityIndicator style={{ flex: 1 }} />;
+    return <ActivityIndicator style={{ flex: 1 }} color={colors.accent} />;
   }
 
   const poster =
@@ -151,8 +155,8 @@ const MovieDetailsScreen = () => {
               }}>
               <ThumbsUp
                 size={20}
-                color="#fff"
-                fill={isLiked ? '#fff' : 'transparent'}
+                color={colors.textPrimary}
+                fill={isLiked ? colors.textPrimary : 'transparent'}
                 strokeWidth={2}
               />
             </Animated.View>
@@ -165,9 +169,9 @@ const MovieDetailsScreen = () => {
                 transform: [{ scale: listScale }, { rotate: listRotate }],
               }}>
               {isInMyList ? (
-                <Check size={20} color="#fff" strokeWidth={3} />
+                <Check size={20} color={colors.textPrimary} strokeWidth={3} />
               ) : (
-                <Plus size={20} color="#fff" strokeWidth={2} />
+                <Plus size={20} color={colors.textPrimary} strokeWidth={2} />
               )}
             </Animated.View>
             <Text style={styles.actionText}>
@@ -216,67 +220,68 @@ const MovieDetailsScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  poster: {
-    width: '100%',
-    height: 420,
-  },
-  content: {
-    padding: 16,
-  },
-  title: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  meta: {
-    color: '#aaa',
-    marginBottom: 12,
-  },
-  plot: {
-    color: '#fff',
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  section: {
-    alignSelf: 'center',
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 16,
-    marginBottom: 12,
-  },
-  detailsContainer: {
-    paddingBottom: 24,
-  },
-  label: {
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  detail: {
-    color: '#fff',
-    marginBottom: 10,
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 20,
-  },
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.screenBackground,
+    },
+    poster: {
+      width: '100%',
+      height: 420,
+    },
+    content: {
+      padding: 16,
+    },
+    title: {
+      color: colors.textPrimary,
+      fontSize: 22,
+      fontWeight: 'bold',
+      marginBottom: 8,
+    },
+    meta: {
+      color: colors.textSecondary,
+      marginBottom: 12,
+    },
+    plot: {
+      color: colors.textPrimary,
+      lineHeight: 20,
+      marginBottom: 16,
+    },
+    section: {
+      alignSelf: 'center',
+      color: colors.textPrimary,
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginTop: 16,
+      marginBottom: 12,
+    },
+    detailsContainer: {
+      paddingBottom: 24,
+    },
+    label: {
+      fontWeight: 'bold',
+      color: colors.textPrimary,
+    },
+    detail: {
+      color: colors.textPrimary,
+      marginBottom: 10,
+    },
+    actions: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginBottom: 20,
+    },
 
-  actionButton: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 8,
-  },
-  actionText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-});
+    actionButton: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 8,
+    },
+    actionText: {
+      color: colors.textPrimary,
+      fontWeight: '600',
+    },
+  });
 
 export default MovieDetailsScreen;

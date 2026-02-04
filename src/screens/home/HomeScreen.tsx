@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View, FlatList } from 'react-native';
 import { useDispatch } from 'react-redux';
 
@@ -7,13 +7,13 @@ import { fetchCategory } from '@/store/slices/moviesSlice';
 
 import { HOME_SECTIONS } from '@/config/homeSections.config';
 import MovieSection from '@/app/components/MovieSection';
+import { useTheme } from '@/theme/hooks';
+import type { ThemeColors } from '@/theme/theme';
 
-interface HomeScreenProps {
-  navigation: any;
-}
-
-const HomeScreen: React.FC<HomeScreenProps> = () => {
+const HomeScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   useEffect(() => {
     HOME_SECTIONS.forEach(section => {
@@ -46,18 +46,19 @@ const HomeScreen: React.FC<HomeScreenProps> = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  listContent: {
-    paddingBottom: 24,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.screenBackground,
+    },
+    centered: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    listContent: {
+      paddingBottom: 24,
+    },
+  });
 
 export default HomeScreen;

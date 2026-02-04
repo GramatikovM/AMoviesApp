@@ -6,6 +6,7 @@ import { StyleSheet } from 'react-native';
 import type { RootTabParamList } from './types';
 import HomeStack from './HomeStack';
 import AccountStack from './AccountStack';
+import { useTheme } from '@/theme/hooks';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -15,13 +16,18 @@ const TAB_ICONS = {
 };
 
 const BottomTabs = () => {
+  const { colors } = useTheme();
+
   return (
-    <Tab.Navigator 
+    <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#E50914',
-        tabBarInactiveTintColor: 'gray',
-        tabBarStyle: styles.tabBar,
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: [
+          styles.tabBar,
+          { backgroundColor: colors.footerBackground, borderTopColor: colors.border },
+        ],
         tabBarIcon: ({ color, size }) => {
           const IconComponent = TAB_ICONS[route.name as keyof typeof TAB_ICONS];
           return <IconComponent color={color} size={size} />;
@@ -44,9 +50,8 @@ const BottomTabs = () => {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: '#000',
-    borderTopColor: '#333',
-  }
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
 });
 
 export default BottomTabs;

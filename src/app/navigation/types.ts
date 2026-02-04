@@ -25,4 +25,5 @@ export type RootStackParamList = {
   };
   LikedMovies: undefined;
   Watchlist: undefined;
+  Settings: undefined;
 };

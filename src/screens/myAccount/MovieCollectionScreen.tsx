@@ -1,13 +1,5 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Image,
-  Pressable,
-  Alert,
-} from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, FlatList, Pressable, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -18,14 +10,16 @@ import { toggleLikeMovie, toggleMyListMovie } from '@/store/slices/moviesSlice';
 
 import RemoveHint from '@/app/components/RemoveHint';
 import MovieCard from '@/app/components/MovieCard';
+import { useTheme } from '@/theme/hooks';
+import type { ThemeColors } from '@/theme/theme';
 
-interface Props {
+type Props = {
   title: string;
   type?: string;
   movies: MovieDetails[];
   emptyCtaLabel?: string;
   onEmptyCtaPress?: () => void;
-}
+};
 
 const MovieCollectionScreen: React.FC<Props> = ({
   title,
@@ -37,6 +31,8 @@ const MovieCollectionScreen: React.FC<Props> = ({
   const navigation =
     useNavigation<NativeStackNavigationProp<RootTabParamList>>();
   const dispatch = useAppDispatch();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const confirmRemove = (movie: MovieDetails) => {
     Alert.alert(
@@ -60,9 +56,6 @@ const MovieCollectionScreen: React.FC<Props> = ({
   };
 
   const renderItem = ({ item }: { item: MovieDetails }) => {
-    const poster =
-      item.Poster && item.Poster !== 'N/A' ? item.Poster : undefined;
-
     return (
       <MovieCard
         movie={item}
@@ -111,83 +104,47 @@ const MovieCollectionScreen: React.FC<Props> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  header: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#fff',
-    padding: 16,
-  },
-  list: {
-    paddingHorizontal: 8,
-    paddingBottom: 16,
-  },
-  card: {
-    flex: 1 / 3,
-    margin: 8,
-  },
-  poster: {
-    width: '100%',
-    aspectRatio: 2 / 3,
-    borderRadius: 6,
-  },
-  posterPlaceholder: {
-    width: '100%',
-    aspectRatio: 2 / 3,
-    borderRadius: 6,
-    backgroundColor: '#333',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderText: {
-    color: '#aaa',
-    fontSize: 12,
-  },
-  title: {
-    color: '#fff',
-    marginTop: 6,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  year: {
-    color: '#aaa',
-    fontSize: 12,
-  },
-  emptyContainer: {
-    flex: 1,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  emptyTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  emptyText: {
-    color: '#aaa',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  ctaButton: {
-    marginTop: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 6,
-    backgroundColor: '#e50914',
-  },
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.screenBackground,
+    },
+    list: {
+      paddingHorizontal: 8,
+      paddingBottom: 16,
+    },
+    emptyContainer: {
+      flex: 1,
+      backgroundColor: colors.screenBackground,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+    },
+    emptyTitle: {
+      fontSize: 22,
+      fontWeight: 'bold',
+      color: colors.textPrimary,
+      marginBottom: 8,
+    },
+    emptyText: {
+      color: colors.textSecondary,
+      fontSize: 14,
+      textAlign: 'center',
+    },
+    ctaButton: {
+      marginTop: 20,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 6,
+      backgroundColor: colors.accent,
+    },
 
-  ctaText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-});
+    ctaText: {
+      color: '#fff',
+      fontWeight: '600',
+      fontSize: 14,
+    },
+  });
 
 export default MovieCollectionScreen;

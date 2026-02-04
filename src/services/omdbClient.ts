@@ -1,20 +1,35 @@
 import { httpClient } from './httpClient';
 import { OMDB_CONFIG } from './config';
+import {
+  OmdbApiResponse,
+  OmdbErrorResponse,
+  OmdbSuccessResponse,
+} from './omdb.types';
 
 type OmdbParams = Record<string, string | number | undefined>;
 
-export const omdbRequest = async <T,>(params: OmdbParams): Promise<T> => {
-  const response = await httpClient.get<T>(OMDB_CONFIG.BASE_URL, {
-    params: {
-      apikey: OMDB_CONFIG.API_KEY,
-      ...params,
+const assertSuccess = <TPayload>(
+  response: OmdbApiResponse<TPayload>,
+): response is OmdbSuccessResponse<TPayload> => response.Response === 'True';
+
+export const omdbRequest = async <TPayload,>(
+  params: OmdbParams,
+): Promise<TPayload> => {
+  const response = await httpClient.get<OmdbApiResponse<TPayload>>(
+    OMDB_CONFIG.BASE_URL,
+    {
+      params: {
+        apikey: OMDB_CONFIG.API_KEY,
+        ...params,
+      },
     },
-  });
+  );
 
-  const data: any = response.data;
+  const data = response.data;
 
-  if (data.Response === 'False') {
-    throw new Error(data.Error || 'OMDb request failed');
+  if (!assertSuccess(data)) {
+    const error = (data as OmdbErrorResponse).Error ?? 'OMDb request failed';
+    throw new Error(error);
   }
 
   return data;

@@ -1,20 +1,19 @@
-export interface Movie {
+export type Movie = {
   imdbID: string;
   Title: string;
   Year: string;
   Poster: string; // can be "N/A"
   Type: 'movie' | 'series' | 'episode';
-}
+};
 
-
-export interface MovieCategories {
+export type MovieCategories = {
   trending: Movie[];
   action: Movie[];
   series: Movie[];
   [key: string]: Movie[];
-}
+};
 
-export interface MovieDetails {
+export type MovieDetails = {
   Title: string;
   Year: string;
   Rated: string;
@@ -43,4 +42,4 @@ export interface MovieDetails {
   Production?: string;
   Website?: string;
   Response: string;
-}
+};
