@@ -1,12 +1,12 @@
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { StyleSheet, View, FlatList } from 'react-native';
 import { useDispatch } from 'react-redux';
 
 import { AppDispatch } from '@/store/store';
 import { fetchCategory } from '@/store/slices/moviesSlice';
 
-import { HOME_SECTIONS } from '@/config/homeSections.config';
-import MovieSection from '@/app/components/MovieSection';
+import { HOME_SECTIONS } from '@/homeSectionsData/homeSections.config';
+import MovieSection from '@/app/components/movies/MovieSection';
 import { useTheme } from '@/theme/hooks';
 import type { ThemeColors } from '@/theme/theme';
 

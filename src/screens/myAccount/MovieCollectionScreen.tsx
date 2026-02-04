@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -8,8 +8,8 @@ import { RootTabParamList } from '@/app/navigation/types';
 import { useAppDispatch } from '@/store/hooks';
 import { toggleLikeMovie, toggleMyListMovie } from '@/store/slices/moviesSlice';
 
-import RemoveHint from '@/app/components/RemoveHint';
-import MovieCard from '@/app/components/MovieCard';
+import RemoveHint from '@/app/components/shared/RemoveHint';
+import MovieCard from '@/app/components/movies/MovieCard';
 import { useTheme } from '@/theme/hooks';
 import type { ThemeColors } from '@/theme/theme';
 

@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -57,7 +57,7 @@ const MovieSection = memo(
     const data = isInitialLoading ? skeletonData : movies;
 
     const loadMore = useCallback(() => {
-      if (!loading && movies.length > 0) {
+      if (!loading && movies.length > 0) { // omdb returns totalResults, could be used to limit unnecessary API usage
         dispatch(
           fetchCategory({
             category: category,
@@ -89,7 +89,7 @@ const MovieSection = memo(
       [navigation],
     );
 
-    if (error && movies.length === 0) {
+    if (error && !loading && movies.length === 0) {
       return (
         <View style={styles.container}>
           <Text style={styles.title}>{title}</Text>
