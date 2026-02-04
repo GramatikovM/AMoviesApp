@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,8 @@ import { RootStackParamList } from '@/app/navigation/types';
 import MovieCard from './MovieCard';
 import MovieCardSkeleton from './MovieCardSkeleton';
 import { SKELETON_COUNT } from '@/shared/constants/constants';
+import { useTheme } from '@/theme/hooks';
+import type { ThemeColors } from '@/theme/theme';
 
 type Props = {
   title: string;
@@ -48,6 +50,8 @@ const MovieSection = memo(
     const loading = useAppSelector(selectCategoryLoading(category));
     const error = useAppSelector(selectCategoryError(category));
     const dispatch = useDispatch<AppDispatch>();
+    const { colors } = useTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
 
     const isInitialLoading = loading && movies.length === 0;
     const data = isInitialLoading ? skeletonData : movies;
@@ -115,7 +119,7 @@ const MovieSection = memo(
             isHorizontal ? styles.horizontalList : undefined
           }
           ListFooterComponent={
-            loading ? <ActivityIndicator size="small" /> : null
+            loading ? <ActivityIndicator size="small" color={colors.accent} /> : null
           }
         />
       </View>
@@ -123,25 +127,26 @@ const MovieSection = memo(
   },
 );
 
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 12,
-    paddingHorizontal: 16,
-  },
-  horizontalList: {
-    paddingHorizontal: 16,
-  },
-  error: {
-    color: '#ff6b6b',
-    paddingHorizontal: 16,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      marginTop: 12,
+      marginBottom: 8,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.textPrimary,
+      marginBottom: 12,
+      paddingHorizontal: 16,
+    },
+    horizontalList: {
+      paddingHorizontal: 16,
+    },
+    error: {
+      color: '#ff6b6b',
+      paddingHorizontal: 16,
+    },
+  });
 
 export default MovieSection;
