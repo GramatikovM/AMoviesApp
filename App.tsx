@@ -6,9 +6,10 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
 
 import RootNavigator from './src/app/navigation/RootNavigator';
-import { store } from '@/store/store';
+import { store, persistor } from '@/store/store';
 
 const App = () => {
   console.log('App running !');
@@ -18,7 +19,9 @@ const App = () => {
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <Provider store={store}>
-        <AppContent />
+        <PersistGate loading={null} persistor={persistor}>
+          <AppContent />
+        </PersistGate>
       </Provider>
     </SafeAreaProvider>
   );

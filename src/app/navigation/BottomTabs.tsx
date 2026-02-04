@@ -1,28 +1,52 @@
 import React from 'react';
-
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import type { RootTabParamList } from './types';
+import { Home, User } from 'lucide-react-native';
+import { StyleSheet } from 'react-native';
 
+import type { RootTabParamList } from './types';
 import HomeStack from './HomeStack';
-import AccountScreen from '@/screens/myAccount/MyAccountScreen';
+import AccountStack from './AccountStack';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
+const TAB_ICONS = {
+  HomeStack: Home,
+  AccountStack: User,
+};
+
 const BottomTabs = () => {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
+    <Tab.Navigator 
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: '#E50914',
+        tabBarInactiveTintColor: 'gray',
+        tabBarStyle: styles.tabBar,
+        tabBarIcon: ({ color, size }) => {
+          const IconComponent = TAB_ICONS[route.name as keyof typeof TAB_ICONS];
+          return <IconComponent color={color} size={size} />;
+        },
+      })}
+    >
       <Tab.Screen
         name="HomeStack"
         component={HomeStack}
         options={{ title: 'Home' }}
       />
       <Tab.Screen
-        name="Account"
-        component={AccountScreen}
+        name="AccountStack"
+        component={AccountStack}
         options={{ title: 'My Account' }}
       />
     </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    backgroundColor: '#000',
+    borderTopColor: '#333',
+  }
+});
 
 export default BottomTabs;
